@@ -14,7 +14,159 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      orders: {
+        Row: {
+          buyer_id: string
+          buyer_message: string | null
+          created_at: string
+          farmer_id: string
+          farmer_message: string | null
+          id: string
+          produce_id: string
+          quantity_kg: number
+          status: string
+          total_price: number
+          updated_at: string
+        }
+        Insert: {
+          buyer_id: string
+          buyer_message?: string | null
+          created_at?: string
+          farmer_id: string
+          farmer_message?: string | null
+          id?: string
+          produce_id: string
+          quantity_kg: number
+          status?: string
+          total_price: number
+          updated_at?: string
+        }
+        Update: {
+          buyer_id?: string
+          buyer_message?: string | null
+          created_at?: string
+          farmer_id?: string
+          farmer_message?: string | null
+          id?: string
+          produce_id?: string
+          quantity_kg?: number
+          status?: string
+          total_price?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_buyer_id_fkey"
+            columns: ["buyer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_farmer_id_fkey"
+            columns: ["farmer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_produce_id_fkey"
+            columns: ["produce_id"]
+            isOneToOne: false
+            referencedRelation: "produce"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      produce: {
+        Row: {
+          created_at: string
+          description: string | null
+          farmer_id: string
+          harvest_date: string | null
+          id: string
+          image_url: string | null
+          is_available: boolean
+          location: string | null
+          name: string
+          price_per_kg: number
+          quantity_kg: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          farmer_id: string
+          harvest_date?: string | null
+          id?: string
+          image_url?: string | null
+          is_available?: boolean
+          location?: string | null
+          name: string
+          price_per_kg: number
+          quantity_kg: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          farmer_id?: string
+          harvest_date?: string | null
+          id?: string
+          image_url?: string | null
+          is_available?: boolean
+          location?: string | null
+          name?: string
+          price_per_kg?: number
+          quantity_kg?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "produce_farmer_id_fkey"
+            columns: ["farmer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          full_name: string
+          id: string
+          location: string | null
+          phone: string | null
+          profile_image_url: string | null
+          updated_at: string
+          user_id: string
+          user_type: string
+        }
+        Insert: {
+          created_at?: string
+          full_name: string
+          id?: string
+          location?: string | null
+          phone?: string | null
+          profile_image_url?: string | null
+          updated_at?: string
+          user_id: string
+          user_type: string
+        }
+        Update: {
+          created_at?: string
+          full_name?: string
+          id?: string
+          location?: string | null
+          phone?: string | null
+          profile_image_url?: string | null
+          updated_at?: string
+          user_id?: string
+          user_type?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
