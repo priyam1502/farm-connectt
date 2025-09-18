@@ -8,17 +8,26 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import { Sprout, ShoppingCart } from "lucide-react";
+import { Sprout, ShoppingCart, Phone, Mail, ArrowLeft } from "lucide-react";
 
 const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const { signIn, signUp } = useAuth();
+  const [authMethod, setAuthMethod] = useState<'email' | 'phone'>('phone');
+  const [otpStep, setOtpStep] = useState<'phone' | 'verify'>('phone');
+  const [isSignUp, setIsSignUp] = useState(false);
+  
+  const { signIn, signUp, signInWithOtp, verifyOtp } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  const [signInData, setSignInData] = useState({
+  const [emailData, setEmailData] = useState({
     email: "",
     password: ""
+  });
+
+  const [phoneData, setPhoneData] = useState({
+    phone: "",
+    otp: ""
   });
 
   const [signUpData, setSignUpData] = useState({
@@ -30,11 +39,28 @@ const Auth = () => {
     user_type: "buyer" as "farmer" | "buyer"
   });
 
-  const handleSignIn = async (e: React.FormEvent) => {
+  const formatPhoneNumber = (phone: string) => {
+    // Remove all non-digits
+    const digits = phone.replace(/\D/g, '');
+    
+    // If it starts with country code, keep it
+    if (digits.startsWith('91') && digits.length === 12) {
+      return `+${digits}`;
+    }
+    
+    // If it's 10 digits, add +91
+    if (digits.length === 10) {
+      return `+91${digits}`;
+    }
+    
+    return `+91${digits.slice(-10)}`;
+  };
+
+  const handleEmailSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     
-    const { error } = await signIn(signInData.email, signInData.password);
+    const { error } = await signIn(emailData.email, emailData.password);
     
     if (error) {
       toast({
@@ -47,13 +73,13 @@ const Auth = () => {
         title: "Welcome back!",
         description: "You have been signed in successfully."
       });
-      navigate("/");
+      navigate("/dashboard");
     }
     
     setIsLoading(false);
   };
 
-  const handleSignUp = async (e: React.FormEvent) => {
+  const handleEmailSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     
@@ -75,10 +101,69 @@ const Auth = () => {
         title: "Account created!",
         description: "Please check your email to confirm your account."
       });
-      navigate("/");
+      navigate("/dashboard");
     }
     
     setIsLoading(false);
+  };
+
+  const handlePhoneSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    
+    const formattedPhone = formatPhoneNumber(phoneData.phone);
+    const { error } = await signInWithOtp(formattedPhone);
+    
+    if (error) {
+      toast({
+        title: "Error sending OTP",
+        description: error.message,
+        variant: "destructive"
+      });
+    } else {
+      toast({
+        title: "OTP Sent!",
+        description: "Please check your SMS for the verification code."
+      });
+      setOtpStep('verify');
+    }
+    
+    setIsLoading(false);
+  };
+
+  const handleOtpVerify = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    
+    const formattedPhone = formatPhoneNumber(phoneData.phone);
+    const userData = isSignUp ? {
+      user_type: signUpData.user_type,
+      full_name: signUpData.full_name || 'User',
+      location: signUpData.location
+    } : undefined;
+    
+    const { error } = await verifyOtp(formattedPhone, phoneData.otp, userData);
+    
+    if (error) {
+      toast({
+        title: "Error verifying OTP",
+        description: error.message,
+        variant: "destructive"
+      });
+    } else {
+      toast({
+        title: "Welcome!",
+        description: "You have been signed in successfully."
+      });
+      navigate("/dashboard");
+    }
+    
+    setIsLoading(false);
+  };
+
+  const resetPhoneAuth = () => {
+    setOtpStep('phone');
+    setPhoneData({ phone: phoneData.phone, otp: "" });
   };
 
   return (
@@ -95,123 +180,262 @@ const Auth = () => {
         </CardHeader>
         
         <CardContent>
-          <Tabs defaultValue="signin" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="signin">Sign In</TabsTrigger>
-              <TabsTrigger value="signup">Sign Up</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="signin">
-              <form onSubmit={handleSignIn} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="signin-email">Email</Label>
-                  <Input
-                    id="signin-email"
-                    type="email"
-                    value={signInData.email}
-                    onChange={(e) => setSignInData({...signInData, email: e.target.value})}
-                    required
-                  />
+          {authMethod === 'phone' && otpStep === 'verify' ? (
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 mb-4">
+                <Button variant="ghost" size="sm" onClick={resetPhoneAuth}>
+                  <ArrowLeft className="h-4 w-4" />
+                </Button>
+                <h3 className="text-lg font-semibold">Verify OTP</h3>
+              </div>
+              
+              {isSignUp && (
+                <div className="space-y-4 mb-4 p-4 bg-muted rounded-lg">
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-name">Full Name</Label>
+                    <Input
+                      id="signup-name"
+                      value={signUpData.full_name}
+                      onChange={(e) => setSignUpData({...signUpData, full_name: e.target.value})}
+                      placeholder="Enter your full name"
+                      required
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="user-type">I am a</Label>
+                    <Select value={signUpData.user_type} onValueChange={(value: "farmer" | "buyer") => setSignUpData({...signUpData, user_type: value})}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="buyer">
+                          <div className="flex items-center gap-2">
+                            <ShoppingCart className="h-4 w-4" />
+                            Buyer
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="farmer">
+                          <div className="flex items-center gap-2">
+                            <Sprout className="h-4 w-4" />
+                            Farmer
+                          </div>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-location">Location (Optional)</Label>
+                    <Input
+                      id="signup-location"
+                      value={signUpData.location}
+                      onChange={(e) => setSignUpData({...signUpData, location: e.target.value})}
+                      placeholder="City, State"
+                    />
+                  </div>
                 </div>
+              )}
+              
+              <form onSubmit={handleOtpVerify} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="signin-password">Password</Label>
+                  <Label htmlFor="otp">Enter OTP sent to {phoneData.phone}</Label>
                   <Input
-                    id="signin-password"
-                    type="password"
-                    value={signInData.password}
-                    onChange={(e) => setSignInData({...signInData, password: e.target.value})}
+                    id="otp"
+                    value={phoneData.otp}
+                    onChange={(e) => setPhoneData({...phoneData, otp: e.target.value})}
+                    placeholder="Enter 6-digit OTP"
+                    maxLength={6}
                     required
                   />
                 </div>
                 <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? "Signing in..." : "Sign In"}
+                  {isLoading ? "Verifying..." : "Verify & Continue"}
                 </Button>
               </form>
-            </TabsContent>
-            
-            <TabsContent value="signup">
-              <form onSubmit={handleSignUp} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="user-type">I am a</Label>
-                  <Select value={signUpData.user_type} onValueChange={(value: "farmer" | "buyer") => setSignUpData({...signUpData, user_type: value})}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="buyer">
-                        <div className="flex items-center gap-2">
-                          <ShoppingCart className="h-4 w-4" />
-                          Buyer
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="farmer">
-                        <div className="flex items-center gap-2">
-                          <Sprout className="h-4 w-4" />
-                          Farmer
-                        </div>
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
+            </div>
+          ) : (
+            <Tabs defaultValue="signin" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="signin" onClick={() => setIsSignUp(false)}>Sign In</TabsTrigger>
+                <TabsTrigger value="signup" onClick={() => setIsSignUp(true)}>Sign Up</TabsTrigger>
+              </TabsList>
+              
+              <div className="mt-4">
+                <div className="flex gap-2 mb-4">
+                  <Button
+                    variant={authMethod === 'phone' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setAuthMethod('phone')}
+                    className="flex-1"
+                  >
+                    <Phone className="h-4 w-4 mr-2" />
+                    Phone
+                  </Button>
+                  <Button
+                    variant={authMethod === 'email' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setAuthMethod('email')}
+                    className="flex-1"
+                  >
+                    <Mail className="h-4 w-4 mr-2" />
+                    Email
+                  </Button>
                 </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="full-name">Full Name</Label>
-                  <Input
-                    id="full-name"
-                    value={signUpData.full_name}
-                    onChange={(e) => setSignUpData({...signUpData, full_name: e.target.value})}
-                    required
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Phone Number</Label>
-                  <Input
-                    id="phone"
-                    value={signUpData.phone}
-                    onChange={(e) => setSignUpData({...signUpData, phone: e.target.value})}
-                    placeholder="+91 9876543210"
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="location">Location</Label>
-                  <Input
-                    id="location"
-                    value={signUpData.location}
-                    onChange={(e) => setSignUpData({...signUpData, location: e.target.value})}
-                    placeholder="City, State"
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="signup-email">Email</Label>
-                  <Input
-                    id="signup-email"
-                    type="email"
-                    value={signUpData.email}
-                    onChange={(e) => setSignUpData({...signUpData, email: e.target.value})}
-                    required
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="signup-password">Password</Label>
-                  <Input
-                    id="signup-password"
-                    type="password"
-                    value={signUpData.password}
-                    onChange={(e) => setSignUpData({...signUpData, password: e.target.value})}
-                    required
-                  />
-                </div>
-                
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? "Creating account..." : "Create Account"}
-                </Button>
-              </form>
-            </TabsContent>
-          </Tabs>
+              </div>
+              
+              <TabsContent value="signin">
+                {authMethod === 'phone' ? (
+                  <form onSubmit={handlePhoneSubmit} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="signin-phone">Phone Number</Label>
+                      <Input
+                        id="signin-phone"
+                        type="tel"
+                        value={phoneData.phone}
+                        onChange={(e) => setPhoneData({...phoneData, phone: e.target.value})}
+                        placeholder="9876543210"
+                        required
+                      />
+                      <p className="text-xs text-muted-foreground">We'll send you an OTP to verify</p>
+                    </div>
+                    <Button type="submit" className="w-full" disabled={isLoading}>
+                      {isLoading ? "Sending OTP..." : "Send OTP"}
+                    </Button>
+                  </form>
+                ) : (
+                  <form onSubmit={handleEmailSignIn} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="signin-email">Email</Label>
+                      <Input
+                        id="signin-email"
+                        type="email"
+                        value={emailData.email}
+                        onChange={(e) => setEmailData({...emailData, email: e.target.value})}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="signin-password">Password</Label>
+                      <Input
+                        id="signin-password"
+                        type="password"
+                        value={emailData.password}
+                        onChange={(e) => setEmailData({...emailData, password: e.target.value})}
+                        required
+                      />
+                    </div>
+                    <Button type="submit" className="w-full" disabled={isLoading}>
+                      {isLoading ? "Signing in..." : "Sign In"}
+                    </Button>
+                  </form>
+                )}
+              </TabsContent>
+              
+              <TabsContent value="signup">
+                {authMethod === 'phone' ? (
+                  <form onSubmit={handlePhoneSubmit} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-phone">Phone Number</Label>
+                      <Input
+                        id="signup-phone"
+                        type="tel"
+                        value={phoneData.phone}
+                        onChange={(e) => setPhoneData({...phoneData, phone: e.target.value})}
+                        placeholder="9876543210"
+                        required
+                      />
+                      <p className="text-xs text-muted-foreground">We'll send you an OTP to create your account</p>
+                    </div>
+                    <Button type="submit" className="w-full" disabled={isLoading}>
+                      {isLoading ? "Sending OTP..." : "Send OTP"}
+                    </Button>
+                  </form>
+                ) : (
+                  <form onSubmit={handleEmailSignUp} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="user-type">I am a</Label>
+                      <Select value={signUpData.user_type} onValueChange={(value: "farmer" | "buyer") => setSignUpData({...signUpData, user_type: value})}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="buyer">
+                            <div className="flex items-center gap-2">
+                              <ShoppingCart className="h-4 w-4" />
+                              Buyer
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="farmer">
+                            <div className="flex items-center gap-2">
+                              <Sprout className="h-4 w-4" />
+                              Farmer
+                            </div>
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="full-name">Full Name</Label>
+                      <Input
+                        id="full-name"
+                        value={signUpData.full_name}
+                        onChange={(e) => setSignUpData({...signUpData, full_name: e.target.value})}
+                        required
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="phone">Phone Number</Label>
+                      <Input
+                        id="phone"
+                        value={signUpData.phone}
+                        onChange={(e) => setSignUpData({...signUpData, phone: e.target.value})}
+                        placeholder="9876543210"
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="location">Location</Label>
+                      <Input
+                        id="location"
+                        value={signUpData.location}
+                        onChange={(e) => setSignUpData({...signUpData, location: e.target.value})}
+                        placeholder="City, State"
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-email">Email</Label>
+                      <Input
+                        id="signup-email"
+                        type="email"
+                        value={signUpData.email}
+                        onChange={(e) => setSignUpData({...signUpData, email: e.target.value})}
+                        required
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-password">Password</Label>
+                      <Input
+                        id="signup-password"
+                        type="password"
+                        value={signUpData.password}
+                        onChange={(e) => setSignUpData({...signUpData, password: e.target.value})}
+                        required
+                      />
+                    </div>
+                    
+                    <Button type="submit" className="w-full" disabled={isLoading}>
+                      {isLoading ? "Creating account..." : "Create Account"}
+                    </Button>
+                  </form>
+                )}
+              </TabsContent>
+            </Tabs>
+          )}
         </CardContent>
       </Card>
     </div>

@@ -19,6 +19,8 @@ interface AuthContextType {
   loading: boolean;
   signUp: (email: string, password: string, userData: Partial<Profile>) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
+  signInWithOtp: (phone: string) => Promise<{ error: any }>;
+  verifyOtp: (phone: string, token: string, userData?: Partial<Profile>) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   updateProfile: (updates: Partial<Profile>) => Promise<{ error: any }>;
 }
@@ -116,6 +118,46 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return { error };
   };
 
+  const signInWithOtp = async (phone: string) => {
+    const { error } = await supabase.auth.signInWithOtp({
+      phone: phone.startsWith('+') ? phone : `+91${phone.replace(/^0/, '')}`,
+      options: {
+        channel: 'sms'
+      }
+    });
+    
+    return { error };
+  };
+
+  const verifyOtp = async (phone: string, token: string, userData?: Partial<Profile>) => {
+    const formattedPhone = phone.startsWith('+') ? phone : `+91${phone.replace(/^0/, '')}`;
+    
+    const { error, data } = await supabase.auth.verifyOtp({
+      phone: formattedPhone,
+      token,
+      type: 'sms'
+    });
+
+    // If this is a new user (signup), create profile
+    if (!error && userData && data.user) {
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .upsert({
+          user_id: data.user.id,
+          user_type: userData.user_type || 'buyer',
+          full_name: userData.full_name || 'User',
+          phone: formattedPhone,
+          location: userData.location
+        });
+      
+      if (profileError) {
+        console.error('Error creating profile:', profileError);
+      }
+    }
+    
+    return { error };
+  };
+
   const signOut = async () => {
     await supabase.auth.signOut();
   };
@@ -143,6 +185,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       loading,
       signUp,
       signIn,
+      signInWithOtp,
+      verifyOtp,
       signOut,
       updateProfile
     }}>
