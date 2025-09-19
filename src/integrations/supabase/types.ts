@@ -80,6 +80,7 @@ export type Database = {
       }
       produce: {
         Row: {
+          average_rating: number | null
           created_at: string
           description: string | null
           farmer_id: string
@@ -91,9 +92,11 @@ export type Database = {
           name: string
           price_per_kg: number
           quantity_kg: number
+          total_ratings: number | null
           updated_at: string
         }
         Insert: {
+          average_rating?: number | null
           created_at?: string
           description?: string | null
           farmer_id: string
@@ -105,9 +108,11 @@ export type Database = {
           name: string
           price_per_kg: number
           quantity_kg: number
+          total_ratings?: number | null
           updated_at?: string
         }
         Update: {
+          average_rating?: number | null
           created_at?: string
           description?: string | null
           farmer_id?: string
@@ -119,6 +124,7 @@ export type Database = {
           name?: string
           price_per_kg?: number
           quantity_kg?: number
+          total_ratings?: number | null
           updated_at?: string
         }
         Relationships: [
@@ -166,6 +172,44 @@ export type Database = {
           user_type?: string
         }
         Relationships: []
+      }
+      ratings: {
+        Row: {
+          comment: string | null
+          created_at: string | null
+          id: string
+          produce_id: string
+          rating: number
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string | null
+          id?: string
+          produce_id: string
+          rating: number
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string | null
+          id?: string
+          produce_id?: string
+          rating?: number
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ratings_produce_id_fkey"
+            columns: ["produce_id"]
+            isOneToOne: false
+            referencedRelation: "produce"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
