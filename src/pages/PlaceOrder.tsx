@@ -108,16 +108,36 @@ const PlaceOrder = () => {
       const { data, error } = await supabase
         .from('ratings')
         .select(`
-          *,
-          profiles!ratings_user_id_fkey (
-            full_name
-          )
+          id,
+          user_id,
+          rating,
+          comment,
+          created_at
         `)
         .eq('produce_id', produceId)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setRatings(data as Rating[]);
+
+      // Fetch user names separately due to relationship complexity
+      const ratingsWithProfiles = await Promise.all(
+        (data || []).map(async (rating) => {
+          const { data: userProfile } = await supabase
+            .from('profiles')
+            .select('full_name')
+            .eq('user_id', rating.user_id)
+            .single();
+          
+          return {
+            ...rating,
+            profiles: {
+              full_name: userProfile?.full_name || 'Anonymous User'
+            }
+          };
+        })
+      );
+
+      setRatings(ratingsWithProfiles as Rating[]);
     } catch (error) {
       console.error('Error fetching ratings:', error);
     }
