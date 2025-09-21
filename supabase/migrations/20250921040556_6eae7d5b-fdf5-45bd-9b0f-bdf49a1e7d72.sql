@@ -1,0 +1,54 @@
+-- Insert fake produce data for demonstration (using different UUIDs)
+INSERT INTO public.produce (name, description, price_per_kg, quantity_kg, location, harvest_date, image_url, is_available, farmer_id)
+VALUES 
+  -- Fresh vegetables
+  ('Fresh Tomatoes', 'Juicy red tomatoes, perfect for cooking and salads. Grown without pesticides using traditional farming methods.', 45.00, 150, 'Pune, Maharashtra', '2024-01-15', 'https://images.unsplash.com/photo-1546470427-e22b67d6dde5?w=400', true, (SELECT id FROM profiles WHERE user_type = 'farmer' LIMIT 1)),
+  ('Organic Carrots', 'Sweet and crunchy organic carrots. Rich in beta-carotene and perfect for juicing or cooking.', 60.00, 80, 'Pune, Maharashtra', '2024-01-10', 'https://images.unsplash.com/photo-1445282768818-728615cc910a?w=400', true, (SELECT id FROM profiles WHERE user_type = 'farmer' LIMIT 1)),
+  ('Organic Spinach', 'Fresh green spinach leaves, organically grown. High in iron and vitamins. Perfect for healthy meals.', 40.00, 50, 'Nashik, Maharashtra', '2024-01-18', 'https://images.unsplash.com/photo-1576045057995-568f588f82fb?w=400', true, (SELECT id FROM profiles WHERE user_type = 'farmer' LIMIT 1)),
+  ('Fresh Mint', 'Aromatic fresh mint leaves. Ideal for teas, chutneys, and garnishing. Grown organically.', 80.00, 25, 'Nashik, Maharashtra', '2024-01-20', 'https://images.unsplash.com/photo-1628779238738-0d0de9dc0cd1?w=400', true, (SELECT id FROM profiles WHERE user_type = 'farmer' LIMIT 1)),
+  ('Fresh Onions', 'High-quality white onions. Essential for Indian cooking. Long shelf life and great flavor.', 30.00, 200, 'Ahmedabad, Gujarat', '2024-01-12', 'https://images.unsplash.com/photo-1508747703725-719777637510?w=400', true, (SELECT id FROM profiles WHERE user_type = 'farmer' LIMIT 1)),
+  ('Green Chillies', 'Spicy green chillies perfect for Indian cuisine. Fresh and fiery hot. Adds authentic heat to dishes.', 120.00, 40, 'Ahmedabad, Gujarat', '2024-01-16', 'https://images.unsplash.com/photo-1583300852775-d4f02d0c9eb4?w=400', true, (SELECT id FROM profiles WHERE user_type = 'farmer' LIMIT 1)),
+  ('Fresh Cauliflower', 'White, firm cauliflower heads. Perfect for curries, parathas, and healthy cooking. Pesticide-free.', 50.00, 75, 'Hyderabad, Telangana', '2024-01-14', 'https://images.unsplash.com/photo-1510627489930-0c1b0bfb6785?w=400', true, (SELECT id FROM profiles WHERE user_type = 'farmer' LIMIT 1)),
+  ('Fresh Coriander', 'Fragrant coriander leaves. Essential herb for Indian cooking. Adds fresh flavor to any dish.', 90.00, 30, 'Hyderabad, Telangana', '2024-01-19', 'https://images.unsplash.com/photo-1628779238738-0d0de9dc0cd1?w=400', true, (SELECT id FROM profiles WHERE user_type = 'farmer' LIMIT 1)),
+  ('Fresh Potatoes', 'High-quality potatoes perfect for all cooking needs. Long-lasting and versatile vegetable.', 25.00, 300, 'Jaipur, Rajasthan', '2024-01-08', 'https://images.unsplash.com/photo-1459411621453-7b03977f4bfc?w=400', true, (SELECT id FROM profiles WHERE user_type = 'farmer' LIMIT 1)),
+  ('Fresh Cabbage', 'Crisp green cabbage heads. Great for salads, stir-fries, and traditional Indian dishes.', 35.00, 120, 'Jaipur, Rajasthan', '2024-01-17', 'https://images.unsplash.com/photo-1594282486738-1d45ec1bf84c?w=400', true, (SELECT id FROM profiles WHERE user_type = 'farmer' LIMIT 1)),
+  ('Fresh Okra', 'Tender green okra (ladyfinger). Perfect for Indian curry dishes. Fresh from the farm.', 55.00, 60, 'Mumbai, Maharashtra', '2024-01-21', 'https://images.unsplash.com/photo-1628616693979-b40c88d3cbe1?w=400', true, (SELECT id FROM profiles WHERE user_type = 'farmer' LIMIT 1)),
+  ('Fresh Ginger', 'Aromatic fresh ginger root. Essential for Indian cooking and natural remedies. Organically grown.', 150.00, 35, 'Kerala', '2024-01-13', 'https://images.unsplash.com/photo-1583300852775-d4f02d0c9eb4?w=400', true, (SELECT id FROM profiles WHERE user_type = 'farmer' LIMIT 1)),
+  ('Fresh Brinjal', 'Purple eggplants perfect for Indian curries. Fresh and tender with glossy skin.', 55.00, 70, 'Karnataka', '2024-01-16', 'https://images.unsplash.com/photo-1615485925600-97237c4fc1ec?w=400', true, (SELECT id FROM profiles WHERE user_type = 'farmer' LIMIT 1)),
+  ('Fresh Garlic', 'Fresh garlic bulbs with strong flavor. Essential for Indian cooking and health benefits.', 200.00, 40, 'Tamil Nadu', '2024-01-14', 'https://images.unsplash.com/photo-1583300852775-d4f02d0c9eb4?w=400', true, (SELECT id FROM profiles WHERE user_type = 'farmer' LIMIT 1)),
+  ('Fresh Cucumber', 'Crisp and refreshing cucumbers. Perfect for salads and cooling summer dishes.', 35.00, 90, 'Punjab', '2024-01-19', 'https://images.unsplash.com/photo-1566281796817-93bc94d7dbd2?w=400', true, (SELECT id FROM profiles WHERE user_type = 'farmer' LIMIT 1)),
+  ('Fresh Bell Peppers', 'Colorful bell peppers - red, yellow, and green. Sweet and crunchy for cooking.', 80.00, 50, 'Himachal Pradesh', '2024-01-17', 'https://images.unsplash.com/photo-1563565375-f3fdfdbefa83?w=400', true, (SELECT id FROM profiles WHERE user_type = 'farmer' LIMIT 1)),
+  ('Fresh Radish', 'White radish (mooli) perfect for parathas and salads. Crisp and mildly spicy.', 30.00, 60, 'Haryana', '2024-01-20', 'https://images.unsplash.com/photo-1566281796817-93bc94d7dbd2?w=400', true, (SELECT id FROM profiles WHERE user_type = 'farmer' LIMIT 1)),
+  ('Fresh Beetroot', 'Deep red beetroots rich in nutrients. Great for salads, juices, and traditional dishes.', 45.00, 55, 'West Bengal', '2024-01-15', 'https://images.unsplash.com/photo-1583300852775-d4f02d0c9eb4?w=400', true, (SELECT id FROM profiles WHERE user_type = 'farmer' LIMIT 1)),
+  ('Fresh Turnip', 'White turnips perfect for traditional Indian dishes. Mild flavor and great nutritional value.', 40.00, 65, 'Uttar Pradesh', '2024-01-18', 'https://images.unsplash.com/photo-1566281796817-93bc94d7dbd2?w=400', true, (SELECT id FROM profiles WHERE user_type = 'farmer' LIMIT 1)),
+  ('Fresh Pumpkin', 'Orange pumpkins perfect for curries and sweets. Sweet flavor and rich in vitamins.', 20.00, 200, 'Madhya Pradesh', '2024-01-12', 'https://images.unsplash.com/photo-1510627489930-0c1b0bfb6785?w=400', true, (SELECT id FROM profiles WHERE user_type = 'farmer' LIMIT 1));
+
+-- Add some demo ratings for the produce
+DO $$
+DECLARE
+    produce_record RECORD;
+    farmer_ids uuid[];
+    random_farmer_id uuid;
+BEGIN
+    -- Get all farmer IDs
+    SELECT array_agg(id) INTO farmer_ids FROM profiles WHERE user_type = 'farmer';
+    
+    -- Add ratings for some produce items
+    FOR produce_record IN 
+        SELECT id FROM produce 
+        WHERE name IN ('Fresh Tomatoes', 'Organic Spinach', 'Fresh Onions', 'Fresh Cauliflower', 'Fresh Potatoes')
+        LIMIT 5
+    LOOP
+        -- Select a random farmer to rate the produce
+        random_farmer_id := farmer_ids[1 + (random() * (array_length(farmer_ids, 1) - 1))::int];
+        
+        INSERT INTO public.ratings (user_id, produce_id, rating, comment)
+        VALUES 
+        (random_farmer_id, produce_record.id, 4 + (random() * 2)::int, 
+         CASE 
+           WHEN random() < 0.3 THEN 'Excellent quality produce! Fresh and reasonably priced.'
+           WHEN random() < 0.6 THEN 'Good quality vegetables. Will order again.'
+           ELSE 'Fresh produce, delivered on time. Satisfied with the purchase.'
+         END);
+    END LOOP;
+END $$;
