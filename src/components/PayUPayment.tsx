@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CreditCard, Shield } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface PayUPaymentProps {
   amount: number;
@@ -28,22 +29,6 @@ const PayUPayment = ({
   const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
 
-  // PayU Test Credentials (for demo)
-  const PAYU_CONFIG = {
-    key: 'gtKFFx', // Demo key - replace with actual key
-    salt: 'eCwWELxi', // Demo salt - replace with actual salt
-    baseURL: 'https://test.payu.in' // Use https://secure.payu.in for production
-  };
-
-  const generateHash = async (data: string) => {
-    // In production, generate hash on server for security
-    // This is a simplified demo implementation
-    const encoder = new TextEncoder();
-    const hashBuffer = await crypto.subtle.digest('SHA-512', encoder.encode(data));
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-  };
-
   const initiatePayment = async () => {
     setIsProcessing(true);
     
@@ -52,29 +37,39 @@ const PayUPayment = ({
       const productinfo = `Order ${orderId}`;
       const firstname = buyerInfo.name.split(' ')[0];
       const email = buyerInfo.email;
-      const phone = buyerInfo.phone;
       
-      // Construct hash string
-      const hashString = `${PAYU_CONFIG.key}|${txnid}|${amount}|${productinfo}|${firstname}|${email}|||||||||||${PAYU_CONFIG.salt}`;
-      const hash = await generateHash(hashString);
+      // Call secure edge function to generate hash
+      const { data: paymentData, error } = await supabase.functions.invoke('generate-payu-hash', {
+        body: {
+          txnid,
+          amount: amount.toString(),
+          productinfo,
+          firstname,
+          email
+        }
+      });
+
+      if (error || !paymentData) {
+        throw new Error('Failed to generate payment hash');
+      }
 
       // Create form for PayU
       const form = document.createElement('form');
       form.method = 'POST';
-      form.action = `${PAYU_CONFIG.baseURL}/_payment`;
+      form.action = 'https://test.payu.in/_payment'; // Use https://secure.payu.in/_payment for production
       form.style.display = 'none';
 
       const formData = {
-        key: PAYU_CONFIG.key,
-        txnid,
-        amount: amount.toString(),
-        productinfo,
-        firstname,
-        email,
-        phone,
-        surl: `${window.location.origin}/payment-success`, // Success URL
-        furl: `${window.location.origin}/payment-failure`, // Failure URL
-        hash,
+        key: paymentData.key,
+        txnid: paymentData.txnid,
+        amount: paymentData.amount,
+        productinfo: paymentData.productinfo,
+        firstname: paymentData.firstname,
+        email: paymentData.email,
+        phone: buyerInfo.phone,
+        surl: `${window.location.origin}/payment-success`,
+        furl: `${window.location.origin}/payment-failure`,
+        hash: paymentData.hash,
         service_provider: 'payu_paisa'
       };
 
@@ -89,41 +84,12 @@ const PayUPayment = ({
       document.body.appendChild(form);
       form.submit();
 
-      // Simulate payment flow for demo
-      setTimeout(() => {
-        const success = Math.random() > 0.3; // 70% success rate for demo
-        
-        if (success) {
-          onPaymentSuccess({
-            txnid,
-            amount,
-            status: 'success',
-            paymentId: `PAY${Date.now()}`
-          });
-          toast({
-            title: "Payment Successful!",
-            description: "Your order has been confirmed."
-          });
-        } else {
-          onPaymentFailure({
-            txnid,
-            error: 'Payment failed'
-          });
-          toast({
-            title: "Payment Failed",
-            description: "Please try again or use a different payment method.",
-            variant: "destructive"
-          });
-        }
-        setIsProcessing(false);
-      }, 3000);
-
     } catch (error) {
       console.error('Payment error:', error);
       onPaymentFailure(error);
       toast({
         title: "Payment Error",
-        description: "Something went wrong. Please try again.",
+        description: "Failed to initiate payment. Please try again.",
         variant: "destructive"
       });
       setIsProcessing(false);
