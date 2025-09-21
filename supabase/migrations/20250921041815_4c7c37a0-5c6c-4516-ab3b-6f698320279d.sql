@@ -1,11 +1,13 @@
--- Fix Profile RLS Policy - Remove overly permissive policy
+- Fix Profile RLS Policy - Remove overly permissive policy
 DROP POLICY IF EXISTS "Users can view all profiles" ON public.profiles;
 
--- Create restrictive policies for profile access
-CREATE POLICY "Users can view their own profile" 
-ON public.profiles 
-FOR SELECT 
-USING (auth.uid() = user_id);
+-- Create restrictive policies for profile access (with IF NOT EXISTS)
+DO $$ 
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'profiles' AND policyname = 'Users can view their own profile') THEN
+    EXECUTE 'CREATE POLICY "Users can view their own profile" ON public.profiles FOR SELECT USING (auth.uid() = user_id)';
+  END IF;
+END $$;
 
 -- Allow viewing basic contact info only for users involved in active orders
 CREATE POLICY "Users can view contact info for active orders" 

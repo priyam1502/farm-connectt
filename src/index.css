@@ -2,10 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Agricultural Design System - Fresh, Modern Farm-to-Market Theme
-All colors MUST be HSL.
-*/
-
 @layer base {
   :root {
     /* Agricultural Green Palette */
