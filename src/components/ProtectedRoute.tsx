@@ -1,21 +1,12 @@
-import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { Navigate } from "react-router-dom";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  requireAuth?: boolean;
 }
 
-const ProtectedRoute = ({ children, requireAuth = true }: ProtectedRouteProps) => {
+const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const { user, loading } = useAuth();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (!loading && requireAuth && !user) {
-      navigate('/auth');
-    }
-  }, [user, loading, requireAuth, navigate]);
 
   if (loading) {
     return (
@@ -25,8 +16,8 @@ const ProtectedRoute = ({ children, requireAuth = true }: ProtectedRouteProps) =
     );
   }
 
-  if (requireAuth && !user) {
-    return null;
+  if (!user) {
+    return <Navigate to="/auth" replace />;
   }
 
   return <>{children}</>;

@@ -1,1 +1,4 @@
 project_id = "bfulrloxjoyaiuygmdgx"
+
+[functions.generate-payment-hash]
+verify_jwt = true

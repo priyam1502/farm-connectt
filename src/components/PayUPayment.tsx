@@ -39,7 +39,7 @@ const PayUPayment = ({
       const email = buyerInfo.email;
       
       // Call secure edge function to generate hash
-      const { data: paymentData, error } = await supabase.functions.invoke('generate-payu-hash', {
+      const { data: paymentData, error } = await supabase.functions.invoke('generate-payment-hash', {
         body: {
           txnid,
           amount: amount.toString(),
