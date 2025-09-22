@@ -3,7 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CreditCard, Shield } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { CreditCard, Shield, Smartphone, Wallet } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -28,6 +29,8 @@ const PayUPayment = ({
 }: PayUPaymentProps) => {
   const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
+
+  const [paymentMethod, setPaymentMethod] = useState<'card' | 'upi' | 'wallet'>('card');
 
   const initiatePayment = async () => {
     setIsProcessing(true);
@@ -70,7 +73,9 @@ const PayUPayment = ({
         surl: `${window.location.origin}/payment-success`,
         furl: `${window.location.origin}/payment-failure`,
         hash: paymentData.hash,
-        service_provider: 'payu_paisa'
+        service_provider: 'payu_paisa',
+        ...(paymentMethod === 'upi' && { pg: 'UPI' }),
+        ...(paymentMethod === 'wallet' && { pg: 'WALLET' })
       };
 
       Object.entries(formData).forEach(([key, value]) => {
@@ -115,6 +120,36 @@ const PayUPayment = ({
             <span className="text-sm font-mono">{orderId}</span>
           </div>
         </div>
+
+        {/* Payment Method Selection */}
+        <Tabs value={paymentMethod} onValueChange={(value) => setPaymentMethod(value as 'card' | 'upi' | 'wallet')}>
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="card" className="flex items-center gap-2">
+              <CreditCard className="h-4 w-4" />
+              Card
+            </TabsTrigger>
+            <TabsTrigger value="upi" className="flex items-center gap-2">
+              <Smartphone className="h-4 w-4" />
+              UPI
+            </TabsTrigger>
+            <TabsTrigger value="wallet" className="flex items-center gap-2">
+              <Wallet className="h-4 w-4" />
+              Wallet
+            </TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="card" className="space-y-3">
+            <p className="text-sm text-muted-foreground">Pay using Credit/Debit Card</p>
+          </TabsContent>
+          
+          <TabsContent value="upi" className="space-y-3">
+            <p className="text-sm text-muted-foreground">Pay using UPI (PhonePe, GPay, Paytm, BHIM)</p>
+          </TabsContent>
+          
+          <TabsContent value="wallet" className="space-y-3">
+            <p className="text-sm text-muted-foreground">Pay using Wallet (Paytm, Mobikwik, etc.)</p>
+          </TabsContent>
+        </Tabs>
 
         <div className="space-y-3">
           <div>
@@ -165,7 +200,12 @@ const PayUPayment = ({
               Processing Payment...
             </>
           ) : (
-            `Pay ₹${amount.toFixed(2)}`
+            <>
+              {paymentMethod === 'card' && <CreditCard className="mr-2 h-4 w-4" />}
+              {paymentMethod === 'upi' && <Smartphone className="mr-2 h-4 w-4" />}
+              {paymentMethod === 'wallet' && <Wallet className="mr-2 h-4 w-4" />}
+              Pay ₹{amount.toFixed(2)} via {paymentMethod.toUpperCase()}
+            </>
           )}
         </Button>
 
