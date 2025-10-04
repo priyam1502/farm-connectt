@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { PricePrediction } from "@/components/PricePrediction";
 import { ArrowLeft, Plus } from "lucide-react";
 
 const AddProduce = () => {
@@ -193,6 +194,15 @@ const AddProduce = () => {
                 Add a photo URL of your produce to attract more buyers
               </p>
             </div>
+
+            {formData.name && formData.location && formData.price_per_kg && formData.quantity_kg && (
+              <PricePrediction
+                cropName={formData.name}
+                location={formData.location}
+                currentPrice={parseFloat(formData.price_per_kg)}
+                quantity={parseFloat(formData.quantity_kg)}
+              />
+            )}
 
             <div className="flex gap-4 pt-4">
               <Button type="submit" disabled={loading} className="flex-1">

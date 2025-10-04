@@ -1,6 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
+import { LanguageSelector } from "@/components/LanguageSelector";
 import { Sprout, Home, Package, ShoppingCart, Plus, LogOut, User } from "lucide-react";
 
 const Navbar = () => {
@@ -53,18 +54,23 @@ const Navbar = () => {
                   </Link>
                 )}
 
+                <LanguageSelector />
+
                 <Button onClick={signOut} variant="outline" size="sm">
                   <LogOut className="h-4 w-4 mr-2" />
                   Sign Out
                 </Button>
               </>
             ) : (
-              <Link to="/auth">
-                <Button>
-                  <User className="h-4 w-4 mr-2" />
-                  Sign In
-                </Button>
-              </Link>
+              <>
+                <LanguageSelector />
+                <Link to="/auth">
+                  <Button>
+                    <User className="h-4 w-4 mr-2" />
+                    Sign In
+                  </Button>
+                </Link>
+              </>
             )}
           </div>
         </div>
